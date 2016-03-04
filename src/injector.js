@@ -18,8 +18,9 @@ var getDepKeys = (module) => {
     return module._inject || [];
 };
 
-function Container (id, parentId) {
+function Container (id, parentContainer) {
     var locals = {};
+    var parent = parentContainer;
 
     // recursive method to register dependencies
     function registerLoop (modules, instances) {
@@ -28,7 +29,7 @@ function Container (id, parentId) {
         if (this.lastModules && modules.length > 0 && this.lastModules.length === modules.length) {
             console.error('circular dependencies in modules: ');
             console.error(modules);
-            throw 'CircularDependencyError: failed to register dependencies';
+            throw new Error('CircularDependencyError: failed to register dependencies');
         }
         
         // assuming no circular dependencies
@@ -58,6 +59,7 @@ function Container (id, parentId) {
     };
 
     var container = {
+        id: id,
         register: (modules) => {
             var depList = Object.keys(modules).map( (key) => {
                 var deps = getDepKeys(modules[key]);
@@ -73,7 +75,10 @@ function Container (id, parentId) {
             if (locals[key]) {
                return locals[key];
             }
-            return containerMap[parentId] ? containerMap[parentId].get(key) : null;
+            else if (parent) {
+                return parent.get(key);
+            }
+            return null;
         },
         // the one requirement of this system is that injector.invoke()
         // must be called on a function. This means modules
@@ -87,7 +92,7 @@ function Container (id, parentId) {
             if (typeof module !== 'function') {
                 console.error('attempted to invoke module, but was not a function: ');
                 console.error(module);
-                throw 'attempted to invoke module, but was not a function';
+                throw new Error('attempted to invoke module, but was not a function');
             }
             // if it requires injection, apply the arguments
             if (module._inject !== undefined) {
@@ -160,7 +165,7 @@ module.exports = {
     },
     // for handling multiple containers
     getContainer: (id) => containerMap[id] || containerMap.root || null,
-    createContainer: (id, parentId) => {
+    createContainer: (id, parent) => {
         if (containerMap[id]) {
             // a container with the specified id already exists
             // throw?
@@ -168,8 +173,37 @@ module.exports = {
                 'returning the pre-existing container');
             return containerMap[id];
         }
-        // create a new container
-        containerMap[id] = Container(id);
+        // if it's a string, assume it's an id
+        if (parent !== undefined) {
+            if (typeof parent === 'string') {
+                // parentId
+                if (!containerMap[parent]) {
+                    // no parent exists
+                    console.error('Specified parent container ID `' + parent + '`' +
+                        ', but no container has been registered with that ID');
+                    throw new Error('Invalid Parent Container ID specified: `' + parent + '`'); 
+                }
+                parent = containerMap[parent];
+            }
+            else if (!parent['id'] || !containerMap.hasOwnProperty(parent['id'])) {
+                console.error('Invalid argument. Second parameter must be either a valid' +
+                    ' container ID, or a registered container instance. Value was');
+                console.error(parent);
+                throw new Error('Invalid Parent Container specified: ' + parent.toString());
+            }
+            containerMap[id] = Container(id, parent);
+            return containerMap[id];
+        }
+        // create a new container using the root as a parent
+        containerMap[id] = Container(id, containerMap.root);
         return containerMap[id];
+    },
+    removeAll: function () {
+        Object.keys(containerMap).forEach( (key) => {
+            if (key !== 'root') { 
+                delete containerMap[key];
+            }
+        });
+        containerMap.root = Container('root');
     }
 };

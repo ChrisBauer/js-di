@@ -46,9 +46,17 @@ function D () {
 };
 
 function DPrime (A) {
-    // for testing circular dependencies
+    // no code - this function is just to test the circular dependency check
 }
 DPrime._inject = ['A'];
+
+function E () {
+    return {
+        getD: function () {
+            return 'E';
+        }
+    };
+}
 
 describe('injector', function () {
 
@@ -59,6 +67,10 @@ describe('injector', function () {
     describe('configuration', function () { 
         beforeEach(function () {
             this.injector = require('../src/injector');
+        });
+
+        afterEach(function () {
+            this.injector.removeAll();
         });
 
         it('should register a simple instance', function () {
@@ -105,9 +117,151 @@ describe('injector', function () {
 
             expect(c.cVal).toBe(d.getD());
         });
+
+        it('should throw if circular dependencies are found', function () {
+            function shouldThrow () {
+                this.injector.register({A: registerA, B: registerB, C: C, D: DPrime});
+            }
+
+            expect(shouldThrow.bind(this)).toThrow(new Error('CircularDependencyError: failed to register dependencies'));
+        });
     });
 
     describe('containers', function () {
+        beforeEach(function () {
+            this.injector = require('../src/injector');
+
+            /* Testing of Container Inheritance
+             *
+             * Inheritance Tree 
+             *        ROOT
+             *       /    \
+             *  childA    childB
+             *     |
+             *  grandChild
+             * 
+             * Dep Tree:
+             *
+             *       ROOT: {A: A->{[LOCAL]B, [LOCAL]C}, B: B, C: C->{[LOCAL]D}, D: D}
+             *      /    \
+             *     |    childB: {A: [ROOT]A, B: A->{[ROOT]B, [LOCAL]C}, C: C->[LOCAL]D, D: E}
+             *     |
+             *  childA: {A: [ROOT]A, B: [ROOT]B, C: [ROOT]C, D: E}
+             *     |
+             *  grandChild: {A: [ROOT]A, B: [ROOT]B, C: C->{PARENT[D]}, D: [PARENT]D}
+             */
+            this.childA = this.injector.createContainer('childA');
+            this.childB = this.injector.createContainer('childB');
+            this.grandChild = this.injector.createContainer('grandChild', this.childA);
+
+            this.injector.register({A: registerA, B: registerB, C: C, D: D});
+            this.childA.register({D: E});
+
+            // note: these must be registered in this order so that the registered B (which is an A)
+            // injects the local C, which injects the local D (which is an E)
+            this.childB.register({D: E, C: C, B: registerA});
+            this.grandChild.register({C: C})
+        });
+
+        afterEach(function () {
+            this.injector.removeAll();
+        });
+
+        it('should populate root appropriately', function () {
+            var a = this.injector.getInstance('A');
+            var b = this.injector.getInstance('B');
+            var c = this.injector.getInstance('C');
+            var d = this.injector.getInstance('D');
+
+            expect(a).toBeDefined();
+            expect(b).toBeDefined();
+            expect(c).toBeDefined();
+            expect(d).toBeDefined();
+
+            expect(a.bVal).toBe(b.getBVal());
+            expect(a.cVal).toBe(c.cVal);
+            expect(a.cVal).toBe(d.getD());
+
+            expect(c.cVal).toBe(d.getD());
+        });
+
+        it('should populate childA appropriately', function () {
+            var a = this.childA.get('A');
+            var b = this.childA.get('B');
+            var c = this.childA.get('C');
+            var d = this.childA.get('D');
+
+            expect(a).toBeDefined();
+            expect(b).toBeDefined();
+            expect(c).toBeDefined();
+            expect(d).toBeDefined();
+
+            expect(a.bVal).toBe(b.getBVal());
+            expect(a.cVal).toBe(c.cVal);
+
+            expect(d.getD()).toBe('E');
+
+            expect(a.cVal).not.toBe(d.getD());
+            expect(c.cVal).not.toBe(d.getD());
+        });
+
+        it('should populate childB appropriately', function () {
+            var rootA = this.injector.getInstance('A');
+            var rootB = this.injector.getInstance('B');
+            var rootC = this.injector.getInstance('C');
+            var rootD = this.injector.getInstance('D');
+
+            var a = this.childB.get('A');
+            var b = this.childB.get('B');
+            var c = this.childB.get('C');
+            var d = this.childB.get('D');
+
+            expect(a).toBeDefined();
+            expect(b).toBeDefined();
+            expect(c).toBeDefined();
+            expect(d).toBeDefined();
+
+            // this container's registered A should be the same as the root container
+            expect(a.bVal).toBe(rootB.getBVal());
+            expect(a.cVal).toBe(rootC.cVal);
+            expect(a.cVal).toBe(rootD.getD());
+
+            // this container's registered B should be an "A" pointing to this container's "D"
+            expect(b.bVal).toBe(a.bVal);
+            expect(b.bVal).toBe(rootA.bVal);
+            expect(b.cVal).toBe('E');
+        });
+
+        it('should populate grandChild appropriately', function () {
+            var rootA = this.injector.getInstance('A');
+            var rootB = this.injector.getInstance('B');
+            var rootC = this.injector.getInstance('C');
+            var rootD = this.injector.getInstance('D');
+
+            var parentA = this.childA.get('A');
+            var parentB = this.childA.get('B');
+            var parentC = this.childA.get('C');
+            var parentD = this.childA.get('D');
+
+            var a = this.grandChild.get('A');
+            var b = this.grandChild.get('B');
+            var c = this.grandChild.get('C');
+            var d = this.grandChild.get('D');
+
+            expect(a).toBeDefined();
+            expect(b).toBeDefined();
+            expect(c).toBeDefined();
+            expect(d).toBeDefined();
+
+            // this container's registered A should be the same as the root container
+            expect(a.bVal).toBe(rootB.getBVal());
+            expect(a.cVal).toBe(rootC.cVal);
+            expect(a.cVal).toBe(rootD.getD());
+
+            // this container's registered C should use its parent's D->E as it's D val
+            expect(c.cVal).toBe('E');
+            expect(c.cVal).not.toBe(parentC.cVal);
+        });
     });
 
 });
