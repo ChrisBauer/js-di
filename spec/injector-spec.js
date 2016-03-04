@@ -144,7 +144,7 @@ describe('injector', function () {
              *
              *       ROOT: {A: A->{[LOCAL]B, [LOCAL]C}, B: B, C: C->{[LOCAL]D}, D: D}
              *      /    \
-             *     |    childB: {A: [ROOT]A, B: A->{[ROOT]B, [LOCAL]C}, C: C->[LOCAL]D, D: E}
+             *     |    childB: {A: [A->{[ROOT]B, [LOCAL]C}, B: [ROOT]B, C: C->[LOCAL]D, D: E}
              *     |
              *  childA: {A: [ROOT]A, B: [ROOT]B, C: [ROOT]C, D: E}
              *     |
@@ -156,10 +156,7 @@ describe('injector', function () {
 
             this.injector.register({A: registerA, B: registerB, C: C, D: D});
             this.childA.register({D: E});
-
-            // note: these must be registered in this order so that the registered B (which is an A)
-            // injects the local C, which injects the local D (which is an E)
-            this.childB.register({D: E, C: C, B: registerA});
+            this.childB.register({A: registerA, C: C, D: E});
             this.grandChild.register({C: C})
         });
 
@@ -221,15 +218,9 @@ describe('injector', function () {
             expect(c).toBeDefined();
             expect(d).toBeDefined();
 
-            // this container's registered A should be the same as the root container
-            expect(a.bVal).toBe(rootB.getBVal());
-            expect(a.cVal).toBe(rootC.cVal);
-            expect(a.cVal).toBe(rootD.getD());
-
-            // this container's registered B should be an "A" pointing to this container's "D"
-            expect(b.bVal).toBe(a.bVal);
-            expect(b.bVal).toBe(rootA.bVal);
-            expect(b.cVal).toBe('E');
+            // this container's A should point to ROOT B but its own C -> D
+            expect(a.bVal).toBe(a.bVal);
+            expect(a.cVal).toBe('E');
         });
 
         it('should populate grandChild appropriately', function () {

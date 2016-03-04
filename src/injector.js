@@ -34,12 +34,13 @@ function Container (id, parentContainer) {
         
         // assuming no circular dependencies
         this.lastModules = modules;
+        var moduleNames = modules.map( (module) => module.key );
 
         // get the modules who have deps that have not been registered
         var unreadyModules = modules.filter( (module) => {
             // if there are deps and some have not been registered ...
             if (module.deps.length > 0 && module.deps.some( (dep) => {
-                return container.get(dep) === null;
+                return (!locals[dep] && moduleNames.indexOf(dep) !== -1) || container.get(dep) === null;
             })) {
                 // ... make sure it gets in the next pass
                 return true;
