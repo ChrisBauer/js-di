@@ -13,6 +13,13 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/**
+    * @class Container
+    */
+/**
+ * @module injector
+ */
+
 'use strict';
 
 // maintain cache of containers
@@ -76,18 +83,21 @@ function Container (id, parentContainer) {
     };
 
     var container = {
-        /*
+        /**
          * @property id String
+         * @memberOf Container
          * @description
          * the id of the container
          */
         id: id,
-        /*
+        /**
          * @function register
-         * @param modules Object a map of modules to register, where the key is the id
+         * @memberOf Container
+         * @instance
+         * @param modules {Object} a map of modules to register, where the key is the id
          *        with which to register the module, and the value is the invocable function
          *        which will return the instance to store
-         * @return Container the container (for chaining)
+         * @return {Container} the container (for chaining)
          * @description
          * Registers one or more modules within the current container. Modules can be specified in any order.
          * If a module being registered in a child container requires a module that does not exist in the current
@@ -107,9 +117,11 @@ function Container (id, parentContainer) {
             registerLoop.call({}, depList, locals);
             return container;
         },
-        /*
+        /**
          * @function get
-         * @param key String the key corresponding to the dependency to get
+         * @memberOf Container
+         * @instance
+         * @param key {String} the key corresponding to the dependency to get
          * @description
          * Get a module from this container with the specified key. If it does not
          * exist in the container, recursively search through parent containers. If
@@ -131,10 +143,12 @@ function Container (id, parentContainer) {
         // function invokeFoo () { return new Foo(); }
         // or
         // function invokeReactClass () { return React.createClass(...); }
-         /*
+         /**
           * @function invoke
-          * @param module Function a function to invoke.
-          * @returns * The return value of the invoked function
+          * @memberOf Container
+          * @instance
+          * @param module {Function} a function to invoke.
+          * @returns {*} The return value of the invoked function
           * @description 
           * Invoke a function through the DI system. Dependencies will
           * automatically be applied as arguments to the function. Will
@@ -167,12 +181,13 @@ function Container (id, parentContainer) {
 // external API
 module.exports = {
     // "simple API"
-    /*
+    /**
      * @function register
-     * @param modules Object a key-value pair of modules to register
-     * @param container Container optional, a container instance in which
+     * @instance
+     * @param modules {Object} a key-value pair of modules to register
+     * @param container {Container} optional, a container instance in which
      *        the modules should be registered.
-     * @returns Container the container
+     * @returns {Container} the container
      * @description
      * Registers the modules in the specified container. If
      * no container is specified, uses the root container.
@@ -183,12 +198,13 @@ module.exports = {
         }
         return container.register(modules);
     },
-     /*
+     /**
       * @function invoke
-      * @param module Function a function to invoke.
-      * @param container Container optional, a container instance from
+      * @instance
+      * @param module {Function} a function to invoke.
+      * @param container {Container} optional, a container instance from
       *        which the dependencies should be injected
-      * @returns * The return value of the invoked function
+      * @returns {*} The return value of the invoked function
       * @description 
       * Invoke a function through the DI system. Dependencies will
       * automatically be applied as arguments to the function. Will
@@ -202,12 +218,13 @@ module.exports = {
         }
         return container.invoke(module);
     },
-    /*
+    /**
      * @function getInstance
-     * @param key String the key of the registered module to get
-     * @param container Container optional, a container instance in which
+     * @instance
+     * @param key {String} the key of the registered module to get
+     * @param container {Container} optional, a container instance in which
      *        to look. If unspecified, will use the root container.
-     * @returns Object the registered module
+     * @returns {*} the registered module
      * @description
      * Manually get an registered instance from the specified container
      * (if provided) or from the root container.
@@ -219,10 +236,11 @@ module.exports = {
         return container.get(key)
     },
     // for handling multiple containers
-    /*
+    /**
      * @function getContainer
-     * @param id String optional the id of the container to get
-     * @returns Container the specified container
+     * @instance
+     * @param id {String} optional the id of the container to get
+     * @returns {Container} the specified container
      * @description
      * if an id is passed, returns the matching container, or null
      * if no id is passed, returns the root container
@@ -235,12 +253,13 @@ module.exports = {
             return containerMap.root;
         }
     },
-    /*
+    /**
      * @function createContainer
-     * @param id String the id of the container to create
-     * @param parent Container|String the container to set as the new container's parent,
+     * @instance
+     * @param id {String} the id of the container to create
+     * @param parent {Container|String} the container to set as the new container's parent,
      *        or an id corresponding to the container to set as the parent
-     * @returns Container the new container
+     * @returns {Container} the new container
      * @description
      * Creates a new Container with the specified ID. If parent is a string, it will
      * use the container corresponding to that id. If the id does not match any containers,
