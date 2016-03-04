@@ -1,21 +1,23 @@
+/**
+ * Copyright (c) 2016, Chris Bauer <cbauer@outlook.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose 
+ * with or without fee is hereby granted, provided that the above copyright notice and 
+ * this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
+ * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 'use strict';
-// keys = container instances
+
+// maintain cache of containers
 var containerMap = {
     root: Container('root')
-};
-
-var getInstances = (depKeys, container) => {
-    return depKeys.map( (depKey) => container.get(depKey.trim()) );
-};
-
-var getDepKeys = (module) => {
-    //  reflection code that won't work when minified so we follow
-    //  the Angular 1 pattern of creating an array of deps and attaching it
-
-    // var args = module.toString().match(/\([a-zA-Z0-9,_\$\ ]*\)/)[0];
-    // args = args.substring(1, args.length - 1).split(',');
-    // var args = module._inject;
-    return module._inject || [];
 };
 
 function Container (id, parentContainer) {
@@ -57,6 +59,20 @@ function Container (id, parentContainer) {
         if (unreadyModules.length > 0) {
             return registerLoop.call(this, unreadyModules, instances);
         }
+    };
+
+    var getInstances = (depKeys, container) => {
+        return depKeys.map( (depKey) => container.get(depKey.trim()) );
+    };
+
+    var getDepKeys = (module) => {
+        //  reflection code that won't work when minified so we follow
+        //  the Angular 1 pattern of creating an array of deps and attaching it
+
+        // var args = module.toString().match(/\([a-zA-Z0-9,_\$\ ]*\)/)[0];
+        // args = args.substring(1, args.length - 1).split(',');
+        // var args = module._inject;
+        return module._inject || [];
     };
 
     var container = {

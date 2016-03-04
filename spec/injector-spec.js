@@ -66,7 +66,7 @@ describe('injector', function () {
 
     describe('configuration', function () { 
         beforeEach(function () {
-            this.injector = require('../src/injector');
+            this.injector = require('../index');
         });
 
         afterEach(function () {
@@ -129,7 +129,7 @@ describe('injector', function () {
 
     describe('containers', function () {
         beforeEach(function () {
-            this.injector = require('../src/injector');
+            this.injector = require('../index');
 
             /* Testing of Container Inheritance
              *
