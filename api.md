@@ -78,3 +78,69 @@ root container will be set as the parent
 | id | <code>String</code> | the id of the container to create |
 | parent | <code>[Container](#Container)</code> &#124; <code>String</code> | the container to set as the new container's parent,        or an id corresponding to the container to set as the parent |
 
+
+
+**Kind**: global class  
+
+* [Container](#Container)
+    * _instance_
+        * [.register(modules)](#Container+register) ⇒ <code>[Container](#Container)</code>
+        * [.get(key)](#Container+get)
+        * [.invoke(module)](#Container+invoke) ⇒ <code>\*</code>
+    * _static_
+        * [.id](#Container.id)
+
+<a name="Container+register"></a>
+### container.register(modules) ⇒ <code>[Container](#Container)</code>
+Registers one or more modules within the current container. Modules can be specified in any order.
+If a module being registered in a child container requires a module that does not exist in the current
+container, it will recursively look through parent containers until it finds it UNLESS a new
+instance of that dependency is being registered as part of this call to .register()
+
+Circular dependencies are caught and an exception is thrown.
+
+**Kind**: instance method of <code>[Container](#Container)</code>  
+**Returns**: <code>[Container](#Container)</code> - the container (for chaining)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| modules | <code>Object</code> | a map of modules to register, where the key is the id        with which to register the module, and the value is the invocable function        which will return the instance to store |
+
+<a name="Container+get"></a>
+### container.get(key)
+Get a module from this container with the specified key. If it does not
+exist in the container, recursively search through parent containers. If
+it has not been registered in any ancestor, return null
+
+**Kind**: instance method of <code>[Container](#Container)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>String</code> | the key corresponding to the dependency to get |
+
+<a name="Container+invoke"></a>
+### container.invoke(module) ⇒ <code>\*</code>
+Invoke a function through the DI system. Dependencies will
+automatically be applied as arguments to the function. Will
+attempt to resolve dependencies from the current container
+(if provided) and recursively look through parent containers if the
+dependencies cannot be met
+
+**Kind**: instance method of <code>[Container](#Container)</code>  
+**Returns**: <code>\*</code> - The return value of the invoked function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| module | <code>function</code> | a function to invoke. |
+
+<a name="Container.id"></a>
+### Container.id
+the id of the container
+
+**Kind**: static property of <code>[Container](#Container)</code>  
+**Properties**
+
+| Name | Description |
+| --- | --- |
+| id | String |
+
