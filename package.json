@@ -10,9 +10,6 @@
     "DI"
   ],
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "node jasmine-runner.js"
   },
