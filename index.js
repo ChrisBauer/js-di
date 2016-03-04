@@ -13,4 +13,4 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-module.exports = require('./src/injector');
+module.exports = require('./dist/injector');
