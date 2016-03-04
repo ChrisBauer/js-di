@@ -1,7 +1,14 @@
 {
   "name": "simple-di",
   "version": "0.0.1",
-  "description": "Simple Dependency Injection",
+  "description": "Simple Dependency Injection for Javascript. Supports multiple containers with container inheritance",
+  "keywords": [
+    "dependency",
+    "dependencies",
+    "injection",
+    "dependency injection",
+    "DI"
+  ],
   "main": "index.js",
   "directories": {
     "test": "test"
