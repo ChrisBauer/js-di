@@ -1,5 +1,7 @@
 # API Reference
 
+## <a name="module_injector">Injector</a>
+
 * [injector](#module_injector)
     * [~register(modules, container)](#module_injector..register) ⇒ <code>[Container](#Container)</code>
     * [~invoke(module, container)](#module_injector..invoke) ⇒ <code>\*</code>
@@ -79,7 +81,7 @@ root container will be set as the parent
 | parent | <code>[Container](#Container)</code> &#124; <code>String</code> | the container to set as the new container's parent,        or an id corresponding to the container to set as the parent |
 
 
-
+## <a name="Container">Container</a>
 **Kind**: global class  
 
 * [Container](#Container)
