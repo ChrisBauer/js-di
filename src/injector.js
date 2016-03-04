@@ -59,7 +59,26 @@ function Container (id, parentContainer) {
     };
 
     var container = {
+        /*
+         * @property id String
+         * @description
+         * the id of the container
+         */
         id: id,
+        /*
+         * @function register
+         * @param modules Object a map of modules to register, where the key is the id
+         *        with which to register the module, and the value is the invocable function
+         *        which will return the instance to store
+         * @return Container the container (for chaining)
+         * @description
+         * Registers one or more modules within the current container. Modules can be specified in any order.
+         * If a module being registered in a child container requires a module that does not exist in the current
+         * container, it will recursively look through parent containers until it finds it UNLESS a new
+         * instance of that dependency is being registered as part of this call to .register()
+         * 
+         * Circular dependencies are caught and an exception is thrown.
+         */
         register: (modules) => {
             var depList = Object.keys(modules).map( (key) => {
                 var deps = getDepKeys(modules[key]);
@@ -71,6 +90,14 @@ function Container (id, parentContainer) {
             registerLoop.call({}, depList, locals);
             return container;
         },
+        /*
+         * @function get
+         * @param key String the key corresponding to the dependency to get
+         * @description
+         * Get a module from this container with the specified key. If it does not
+         * exist in the container, recursively search through parent containers. If
+         * it has not been registered in any ancestor, return null
+         */
         get: (key) => {
             if (locals[key]) {
                return locals[key];
@@ -87,6 +114,17 @@ function Container (id, parentContainer) {
         // function invokeFoo () { return new Foo(); }
         // or
         // function invokeReactClass () { return React.createClass(...); }
+         /*
+          * @function invoke
+          * @param module Function a function to invoke.
+          * @returns * The return value of the invoked function
+          * @description 
+          * Invoke a function through the DI system. Dependencies will
+          * automatically be applied as arguments to the function. Will
+          * attempt to resolve dependencies from the current container
+          * (if provided) and recursively look through parent containers if the
+          * dependencies cannot be met
+          */
         invoke: (module) => {
             // if it's a function
             if (typeof module !== 'function') {
@@ -138,7 +176,7 @@ module.exports = {
       * Invoke a function through the DI system. Dependencies will
       * automatically be applied as arguments to the function. Will
       * attempt to resolve dependencies from the specified container
-      * (if provided) and will fall back on the root container if
+      * (if provided) and will recursively look through parent containers if the
       * dependencies cannot be met
       */
     invoke: (module, container) => {
@@ -164,7 +202,36 @@ module.exports = {
         return container.get(key)
     },
     // for handling multiple containers
-    getContainer: (id) => containerMap[id] || containerMap.root || null,
+    /*
+     * @function getContainer
+     * @param id String optional the id of the container to get
+     * @returns Container the specified container
+     * @description
+     * if an id is passed, returns the matching container, or null
+     * if no id is passed, returns the root container
+     */
+    getContainer: (id) => {
+        if (id) {
+            return containerMap[id] || null;
+        }
+        else {
+            return containerMap.root;
+        }
+    },
+    /*
+     * @function createContainer
+     * @param id String the id of the container to create
+     * @param parent Container|String the container to set as the new container's parent,
+     *        or an id corresponding to the container to set as the parent
+     * @returns Container the new container
+     * @description
+     * Creates a new Container with the specified ID. If parent is a string, it will
+     * use the container corresponding to that id. If the id does not match any containers,
+     * it will throw an exception. If parent is not a string, it checks to make sure the
+     * specified argument has an `id` property and that a container with this id already
+     * exists. Otherwise, it will throw an exception. If parent is unspecified, the
+     * root container will be set as the parent
+     */
     createContainer: (id, parent) => {
         if (containerMap[id]) {
             // a container with the specified id already exists
@@ -198,6 +265,7 @@ module.exports = {
         containerMap[id] = Container(id, containerMap.root);
         return containerMap[id];
     },
+    // TODO: used only for testing. determine how to get multiple instances for unit testing
     removeAll: function () {
         Object.keys(containerMap).forEach( (key) => {
             if (key !== 'root') { 
