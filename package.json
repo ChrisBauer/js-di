@@ -13,7 +13,7 @@
   "scripts": {
     "test": "node jasmine-runner.js",
     "doc": "jsdoc src/injector.js -d ./docs",
-    "build-readme": "jsdoc2md src/*.js --template README.hbs > README.md",
+    "build-readme": "jsdoc2md src/*.js --template README.tpl > README.md",
     "build": "mkdir -p dist && babel src/injector.js -o dist/injector.js"
   },
   "author": "Chris Bauer",

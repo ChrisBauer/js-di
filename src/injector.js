@@ -179,7 +179,7 @@ function Container (id, parentContainer) {
 }
 
 // external API
-module.exports = {
+export const Injector = {
     // "simple API"
     /**
      * @function register

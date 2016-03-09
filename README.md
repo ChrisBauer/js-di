@@ -1,4 +1,4 @@
-# simple-di
+# js-di
 A simple Dependency-Injection system which supports multiple containers and container inheritance
 
 ### getting the code
@@ -14,6 +14,8 @@ Run the tests using `npm test`
 Transpile to ES5 using `npm run build`
 
 Build the docs using `npm run doc`
+
+Generate the docs for the readme with `npm run build-readme`
 
 # API Reference
 

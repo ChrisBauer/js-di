@@ -1,5 +1,7 @@
 'use strict';
 
+var injector = require('../index').Injector
+
 function A (B, C) {
     this.bVal = B.getBVal();
     this.cVal = C.cVal;
@@ -59,16 +61,11 @@ function E () {
 }
 
 describe('injector', function () {
-
-    it ('should pass', function () {
-        expect(true).toBe(true);
+    beforeEach(function () {
+        this.injector = injector;
     });
 
     describe('configuration', function () { 
-        beforeEach(function () {
-            this.injector = require('../index');
-        });
-
         afterEach(function () {
             this.injector.removeAll();
         });
@@ -129,8 +126,6 @@ describe('injector', function () {
 
     describe('containers', function () {
         beforeEach(function () {
-            this.injector = require('../index');
-
             /* Testing of Container Inheritance
              *
              * Inheritance Tree 
