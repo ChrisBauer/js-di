@@ -4,7 +4,11 @@ A simple Dependency-Injection system which supports multiple containers and cont
 ### getting the code
 install from npm: `npm install js-di`
 
-use in your project: `var injector = require('js-di');`
+use in your project: 
+
+`var injector = require('js-di');`
+OR
+`import {Injector} from 'js-di';`
 
 ### running the tests
 Install the dependencies using `npm install`
